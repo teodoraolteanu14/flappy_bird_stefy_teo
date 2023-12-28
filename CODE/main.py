@@ -11,6 +11,12 @@ screen_height = 800
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Flappy Bird - Stefy & Teo')
 
+#define font
+font = pygame.font.SysFont('Bauhaus 93', 60)
+#define colors
+white = (255, 255, 255)
+
+#game variables
 ground_scroll = 0
 scroll_speed = 4
 flying = False
@@ -18,10 +24,16 @@ game_over = False
 pipe_gap = 150
 pipe_frequency = 1500 #milliseconds
 last_pipe = pygame.time.get_ticks() - pipe_frequency
+score = 0
+pass_pipe = False
+
 
 bg = pygame.image.load('img/bg_nou.png')
 ground_img = pygame.image.load('img/ground.png')
 
+def draw_text(text, text_font, color, x, y):
+    img = text_font.render(text, True, color)
+    screen.blit(img, (x, y))
 
 class Bird(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -95,14 +107,11 @@ class Pipe(pygame.sprite.Sprite):
             self.kill()
 
 
-
 bird_group = pygame.sprite.Group()
 pipe_group = pygame.sprite.Group()
 
 flappy = Bird(100, int(screen_height / 2))
 bird_group.add(flappy)
-
-
 
 run = True
 while run:
@@ -118,6 +127,20 @@ while run:
     # draw the ground
     screen.blit(ground_img, (ground_scroll, 640))
 
+    #check the score
+    if len(pipe_group) > 0:
+        #if the bird is between the left and right side of the pipe, it has passed it
+        if bird_group.sprites()[0].rect.left > pipe_group.sprites()[0].rect.left\
+            and bird_group.sprites()[0].rect.right < pipe_group.sprites()[0].rect.right\
+                and pass_pipe == False:
+            pass_pipe = True
+        if pass_pipe == True:
+            #if the bird passed the right side of the pipe, increase the score
+            if bird_group.sprites()[0].rect.left > pipe_group.sprites()[0].rect.right:
+                score += 1
+                pass_pipe = False
+    draw_text(str(score), font, white, int(screen_width / 2), 20)
+
     #look for collision with the pipes and if the bird is above the screen
     if pygame.sprite.groupcollide(bird_group, pipe_group, False, False) or flappy.rect.top < 0:
         game_over = True
@@ -126,9 +149,8 @@ while run:
         game_over = True
         flying = False
 
-    #if the bird has hit the ground, stop scrolling
+    #if the bird has hit the ground, stop scrolling/generating pipes
     if game_over == False and flying == True:
-        #generate new pipes
         time_now = pygame.time.get_ticks()
         #if enough time has passed since the last pipe was generated
         if time_now - last_pipe > pipe_frequency:
