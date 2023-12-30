@@ -4,8 +4,11 @@ import random
 
 pygame.init()
 
+# ensure the game runs as the same rate
 clock = pygame.time.Clock()
-fps = 60
+fps = 60  # frames per second
+
+# create the game window and set the caption
 screen_width = 864
 screen_height = 800
 screen = pygame.display.set_mode((screen_width, screen_height))
@@ -38,6 +41,7 @@ def draw_text(text, text_font, color, x, y):
     screen.blit(img, (x, y))
 
 
+# reset the game
 def reset_game():
     pipe_group.empty()
     flappy.rect.x = 100
@@ -48,7 +52,7 @@ def reset_game():
 
 class Bird(pygame.sprite.Sprite):
     def __init__(self, x, y):
-        pygame.sprite.Sprite.__init__(self)
+        pygame.sprite.Sprite.__init__(self)  # allows inheriting functionalities
         self.images = []
         self.index = 0
         self.counter = 0
@@ -57,7 +61,7 @@ class Bird(pygame.sprite.Sprite):
             img = pygame.image.load(f'img/bird{num}.png')
             self.images.append(img)
         self.image = self.images[self.index]
-        self.rect = self.image.get_rect()
+        self.rect = self.image.get_rect()  # create a rectangle from the boundaries of the img
         self.rect.center = [x, y]
         self.vel = 0
         self.clicked = False
@@ -89,7 +93,7 @@ class Bird(pygame.sprite.Sprite):
                 self.counter = 0
                 self.index += 1
                 if self.index >= len(self.images):
-                    self.index = 0
+                    self.index = 0  # animation is complete and we start again
             self.image = self.images[self.index]
 
             # rotate the bird
@@ -153,9 +157,21 @@ bird_group.add(flappy)
 button = Button(screen_width // 2 - 50, screen_height // 2 - 100, button_img)
 
 run = True
+
+
+def jump():
+    global flying, game_over
+    if flying == False and game_over == False:
+        flying = True
+    if game_over == False:
+        flappy.vel = -10  # Set the velocity for jump
+
+
+# game loop
 while run:
     clock.tick(fps)
 
+    # show the background on the screen
     screen.blit(bg, (0, 0))
 
     bird_group.draw(screen)
@@ -215,10 +231,14 @@ while run:
             score = reset_game()
 
     for event in pygame.event.get():
+        # stops running when closing the window
         if event.type == pygame.QUIT:
             run = False
-        if event.type == pygame.MOUSEBUTTONDOWN and flying == False and game_over == False:
-            flying = True
-    pygame.display.update()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            jump()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                jump()
+    pygame.display.update()  # gets everything updated
 
 pygame.quit()
